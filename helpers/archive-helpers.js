@@ -63,15 +63,24 @@ exports.isUrlArchived = function(url, callback) {
 };
 
 exports.downloadUrls = function(urlArray) {
+  console.log('inside downloadUrls with urlArray: ', urlArray);
   urlArray.forEach(function(url) {
-    var file = fs.createWriteStream(exports.paths.archivedSites + '/' + url);
-    var request = http.get('http://' + url, function(response) {
-      response.pipe(file);
-      file.on('finish', function() {
-        file.close();
-      });     
-    }).on('error', function(err) {
-      fs.unlink(exports.paths.archivedSites + '/' + url);
+    console.log('url inside forEach is: ', url);
+    exports.isUrlArchived(url, function(exists) {
+      if (!exists) {
+        console.log('url inside downloadUrls is: ', url);
+        var file = fs.createWriteStream(exports.paths.archivedSites + '/' + url);
+        var request = http.get('http://' + url, function(response) {
+          console.log('success with url: ', url);
+          response.pipe(file);
+          file.on('finish', function() {
+            file.close();
+          });     
+        }).on('error', function(err) {
+          console.log('error with url: ', url);
+          fs.unlink(exports.paths.archivedSites + '/' + url);
+        });
+      }
     });
   });
 };

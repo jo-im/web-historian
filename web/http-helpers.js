@@ -25,7 +25,6 @@ exports.serveAssets = function(res, asset, statusCode) {
   } else {
     if (asset) { 
       if (asset.slice(-3) === 'css') {
-        console.log('changing content-type to text/css');
         exports.headers['Content-Type'] = 'text/css';
       } 
       fs.readFile(asset, 'utf8', function(err, data) {

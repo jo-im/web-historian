@@ -28,14 +28,12 @@ exports.handleRequest = function (req, res) {
     var absPath = path.join(__dirname, './public/styles.css');
     httpHelpers.serveAssets(res, absPath);
   } else if (req.method === 'GET' && req.url === '/loading.html') {
-    console.log('entering get request and loading.html');
     var absPath = path.join(__dirname, './public/loading.html');
     httpHelpers.serveAssets(res, absPath);
   } else if (req.method === 'GET') {
-    console.log('entering generic GET');
     archive.isUrlArchived(slicedUrl, function(exists) {
       if (exists) {
-        var absPath = archive.paths.archivedSites + req.url;
+        var absPath = archive.paths.archivedSites + slicedUrl;
         httpHelpers.serveAssets(res, absPath);
       } else {
         var request = http.get('http://' + slicedUrl, function(response) {
@@ -46,13 +44,19 @@ exports.handleRequest = function (req, res) {
     });
   } else if (req.method === 'POST') {
     httpHelpers.collectData(req, function(url) {
-      archive.isUrlArchived(url, function(exists) {
-        if (exists) {
-          var absPath = archive.paths.archivedSites + req.url;
-          httpHelpers.serveAssets(res, absPath);
-        } else {
+      archive.isUrlInList(url, function(exists) {
+        if (!exists) {
           archive.addUrlToList(url, function() {
             httpHelpers.serveAssets(res, '/loading.html', 302);
+          });
+        } else {
+          archive.isUrlArchived(url, function(exists) {
+            if (exists) {
+              var absPath = archive.paths.archivedSites + '/' + url;
+              httpHelpers.serveAssets(res, absPath);
+            } else {
+              httpHelpers.serveAssets(res, '/loading.html', 302);
+            }
           });
         }
       });
