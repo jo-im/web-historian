@@ -2,8 +2,7 @@ var path = require('path');
 var archive = require('../helpers/archive-helpers');
 // require more modules/folders here!
 var httpHelpers = require('./http-helpers');
-// var fs = require('fs');
-// var url = require('url');
+var http = require('http');
 
 var actions = {
   'GET': function(request, response) {
@@ -18,21 +17,28 @@ var actions = {
 };
 
 exports.handleRequest = function (req, res) {
+  // GET: if archived => archived html
+  // GET: if not archived => 404
 
-  if (req.method === 'GET' && !archive.isUrlArchived(req.url)) {
-    httpHelpers.sendResponse(res, 404);
-  } 
+  var slicedUrl = req.url.slice(1);
 
   if (req.method === 'GET' && req.url === '/') {
-
     var absPath = path.join(__dirname, './public/index.html');
     httpHelpers.serveAssets(res, absPath);
-
   } else if (req.method === 'GET') {
-
-    var absPath = archive.paths.archivedSites + req.url;
-    httpHelpers.serveAssets(res, absPath);
-
+    archive.isUrlArchived(slicedUrl, function(exists) {
+      if (exists) {
+        var absPath = archive.paths.archivedSites + req.url;
+        httpHelpers.serveAssets(res, absPath);
+      } else {
+        var request = http.get('http://' + slicedUrl, function(response) {
+     
+        }).on('error', function(err) {
+          httpHelpers.sendResponse(res, 404);
+        });
+   
+      }
+    });
   } else if (req.method === 'POST') {
     console.log('inside post!');
     httpHelpers.collectData(req, function(url) {

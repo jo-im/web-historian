@@ -1,6 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var http = require('http');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -25,43 +26,71 @@ exports.initialize = function(pathsObj) {
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
-exports.readListOfUrls = function() {
-  var result = [];
-
+exports.readListOfUrls = function(callback) {
   fs.readFile(exports.paths.list, 'utf8', function(err, data) {
     if (err) {
       throw err;
     }
-
-    result = result.concat(data.split('\n')).slice(0, -1);
-    // console.log(result);
+    callback(data.split('\n'));
   });
-
-  return result;
 };
 
-exports.isUrlInList = function(url) {
-  return exports.readListOfUrls().indexOf(url.slice(1)) > -1;
+exports.isUrlInList = function(url, callback) {
+  exports.readListOfUrls(function(urls) {
+    callback(urls.indexOf(url) > - 1);
+  }); 
 };
 
-exports.addUrlToList = function(url) {
-  console.log('inside addUrlToList');
-  console.log('url is: ', url);
-
+exports.addUrlToList = function(url, callback) {
   fs.appendFile(exports.paths.list, url + '\n', function(err) {
-
+    if (err) {
+      throw err;
+    }
+    callback();
   });
 };
 
-exports.isUrlArchived = function(url) {
-  if (url === '/') {
+exports.isUrlArchived = function(url, callback) {
+  if (url === '') {
     return true;
   }
-
-  var files = fs.readdirSync(exports.paths.archivedSites);
-
-  return files.indexOf(url.slice(1)) > -1;
+  fs.readdir(exports.paths.archivedSites, function(err, files) {
+    if (err) {
+      throw err;
+    }
+    callback(files.indexOf(url) > -1);
+  });
 };
 
-exports.downloadUrls = function() {
+exports.downloadUrls = function(urlArray) {
+  console.log('inside downloadUrls');
+  urlArray.forEach(function(url) {
+    var file = fs.createWriteStream(exports.paths.archivedSites + '/' + url);
+    var request = http.get('http://' + url, function(response) {
+      response.pipe(file);
+      file.on('finish', function() {
+        file.close();
+      });     
+    }).on('error', function(err) {
+      fs.unlink(exports.paths.archivedSites + '/' + url);
+    });
+  });
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
