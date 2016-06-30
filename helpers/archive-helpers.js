@@ -66,16 +66,16 @@ exports.isUrlArchived = function(url, callback) {
 };
 
 exports.downloadUrls = function(urlArray) {
-  var uploader = function(i) {
+  var recursiveDownloader = function(i) {
     if (i < urlArray.length) {
       exports.isUrlArchived(urlArray[i], function(exists) {
         if (!exists) {
           request('http://' + urlArray[i])
           .pipe(fs.createWriteStream(exports.paths.archivedSites + '/' + urlArray[i]));
         }
-        uploader(i + 1);
+        recursiveDownloader(i + 1);
       });
     }
   };
-  uploader(0);
+  recursiveDownloader(0);
 };
