@@ -34,7 +34,7 @@ exports.readListOfUrls = function() {
     }
 
     result = result.concat(data.split('\n')).slice(0, -1);
-    console.log(result);
+    // console.log(result);
   });
 
   return result;
@@ -44,7 +44,13 @@ exports.isUrlInList = function(url) {
   return exports.readListOfUrls().indexOf(url.slice(1)) > -1;
 };
 
-exports.addUrlToList = function() {
+exports.addUrlToList = function(url) {
+  console.log('inside addUrlToList');
+  console.log('url is: ', url);
+
+  fs.appendFile(exports.paths.list, url + '\n', function(err) {
+
+  });
 };
 
 exports.isUrlArchived = function(url) {
@@ -53,7 +59,7 @@ exports.isUrlArchived = function(url) {
   }
 
   var files = fs.readdirSync(exports.paths.archivedSites);
-  
+
   return files.indexOf(url.slice(1)) > -1;
 };
 
