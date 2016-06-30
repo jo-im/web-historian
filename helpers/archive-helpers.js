@@ -33,23 +33,28 @@ exports.readListOfUrls = function() {
       throw err;
     }
 
-    result = result.concat(data.split('\n'));
+    result = result.concat(data.split('\n')).slice(0, -1);
+    console.log(result);
   });
 
   return result;
 };
 
 exports.isUrlInList = function(url) {
-  if (url === '/') {
-    return true;
-  }
   return exports.readListOfUrls().indexOf(url.slice(1)) > -1;
 };
 
 exports.addUrlToList = function() {
 };
 
-exports.isUrlArchived = function() {
+exports.isUrlArchived = function(url) {
+  if (url === '/') {
+    return true;
+  }
+
+  var files = fs.readdirSync(exports.paths.archivedSites);
+  
+  return files.indexOf(url.slice(1)) > -1;
 };
 
 exports.downloadUrls = function() {

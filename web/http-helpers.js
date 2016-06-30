@@ -19,6 +19,8 @@ exports.serveAssets = function(res, asset, callback) {
  
   res.writeHead(200, exports.headers);
   fs.readFile(asset, 'utf8', function(err, data) {
+    console.log('asset is: ', asset);
+    console.log('data is: ', data);
     if (err) {
       throw err;
     }

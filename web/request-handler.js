@@ -19,7 +19,7 @@ var actions = {
 
 exports.handleRequest = function (req, res) {
 
-  if (!archive.isUrlInList(req.url)) {
+  if (!archive.isUrlArchived(req.url)) {
     httpHelpers.sendResponse(res, 404);
   } 
 
