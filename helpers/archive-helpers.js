@@ -2,6 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
 var http = require('http');
+var request = require('request');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -31,7 +32,9 @@ exports.readListOfUrls = function(callback) {
     if (err) {
       throw err;
     }
-    callback(data.split('\n'));
+    var arr = data.split('\n');
+    arr.splice(-1, 1);
+    callback(arr);
   });
 };
 
@@ -64,23 +67,17 @@ exports.isUrlArchived = function(url, callback) {
 
 exports.downloadUrls = function(urlArray) {
   console.log('inside downloadUrls with urlArray: ', urlArray);
-  urlArray.forEach(function(url) {
-    console.log('url inside forEach is: ', url);
-    exports.isUrlArchived(url, function(exists) {
-      if (!exists) {
-        console.log('url inside downloadUrls is: ', url);
-        var file = fs.createWriteStream(exports.paths.archivedSites + '/' + url);
-        var request = http.get('http://' + url, function(response) {
-          console.log('success with url: ', url);
-          response.pipe(file);
-          file.on('finish', function() {
-            file.close();
-          });     
-        }).on('error', function(err) {
-          console.log('error with url: ', url);
-          fs.unlink(exports.paths.archivedSites + '/' + url);
-        });
-      }
-    });
-  });
+
+  var uploader = function(i) {
+    if (i < urlArray.length) {
+      exports.isUrlArchived(urlArray[i], function(exists) {
+        if (!exists) {
+          request('http://' + urlArray[i])
+          .pipe(fs.createWriteStream(exports.paths.archivedSites + '/' + urlArray[i]));
+        }
+        uploader(i + 1);
+      });
+    }
+  };
+  uploader(0);
 };

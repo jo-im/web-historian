@@ -42,7 +42,7 @@ exports.handleRequest = function (req, res) {
         });
       }
     });
-  } else if (req.method === 'POST') {
+  } else if (req.method === 'POST' && req.url === '/' || req.method === 'POST' && req.url === '/loading.html') {
     httpHelpers.collectData(req, function(url) {
       archive.isUrlInList(url, function(exists) {
         if (!exists) {
