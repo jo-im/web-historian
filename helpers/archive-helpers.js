@@ -66,8 +66,6 @@ exports.isUrlArchived = function(url, callback) {
 };
 
 exports.downloadUrls = function(urlArray) {
-  console.log('inside downloadUrls with urlArray: ', urlArray);
-
   var uploader = function(i) {
     if (i < urlArray.length) {
       exports.isUrlArchived(urlArray[i], function(exists) {
