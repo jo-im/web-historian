@@ -52,7 +52,7 @@ exports.addUrlToList = function(url, callback) {
 
 exports.isUrlArchived = function(url, callback) {
   if (url === '') {
-    return true;
+    callback(true);
   }
   fs.readdir(exports.paths.archivedSites, function(err, files) {
     if (err) {
@@ -63,7 +63,6 @@ exports.isUrlArchived = function(url, callback) {
 };
 
 exports.downloadUrls = function(urlArray) {
-  console.log('inside downloadUrls');
   urlArray.forEach(function(url) {
     var file = fs.createWriteStream(exports.paths.archivedSites + '/' + url);
     var request = http.get('http://' + url, function(response) {
@@ -76,21 +75,3 @@ exports.downloadUrls = function(urlArray) {
     });
   });
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

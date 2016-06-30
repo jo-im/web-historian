@@ -7,38 +7,42 @@ exports.headers = {
   'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'access-control-allow-headers': 'content-type, accept',
   'access-control-max-age': 10, // Seconds.
-  'Content-Type': 'text/html'
+  // 'Content-Type': 'text/html'
 };
 
-exports.serveAssets = function(res, asset, callback) {
+exports.serveAssets = function(res, asset, statusCode) {
   // Write some code here that helps serve up your static files!
   // (Static files are things like html (yours or archived from others...),
   // css, or anything that doesn't change often.)
- 
-  res.writeHead(200, exports.headers);
-  fs.readFile(asset, 'utf8', function(err, data) {
-    console.log('asset is: ', asset);
-    console.log('data is: ', data);
-    if (err) {
-      throw err;
-    }
-    res.write(data);
-    res.end();
-  });
-};
-
-exports.sendResponse = function(response, statusCode, data) {
   statusCode = statusCode || 200;
-  response.writeHead(statusCode, exports.headers);
-  if (data) {
-    response.end(data);
+  exports.headers['Content-Type'] = 'text/html';
+
+  // if POST
+  if (statusCode === 302) {
+    exports.headers['Location'] = asset;
+    res.writeHead(statusCode, exports.headers);
+    res.end();
   } else {
-    response.end();
+    if (asset) { 
+      if (asset.slice(-3) === 'css') {
+        console.log('changing content-type to text/css');
+        exports.headers['Content-Type'] = 'text/css';
+      } 
+      fs.readFile(asset, 'utf8', function(err, data) {
+        if (err) {
+          throw err;
+        }
+        res.writeHead(statusCode, exports.headers);
+        res.write(data);
+        res.end();
+      });
+    } else {
+      res.end();
+    }
   }
 };
 
 exports.collectData = function(request, callback) {
-  console.log('first line of collectData');
   var data = '';
   request.on('data', function(chunk) {
     data += chunk;

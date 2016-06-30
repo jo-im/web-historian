@@ -17,35 +17,45 @@ var actions = {
 };
 
 exports.handleRequest = function (req, res) {
-  // GET: if archived => archived html
-  // GET: if not archived => 404
+  console.log('Handling request method ' + req.method + ' at url ' + req.url);
 
   var slicedUrl = req.url.slice(1);
 
   if (req.method === 'GET' && req.url === '/') {
     var absPath = path.join(__dirname, './public/index.html');
     httpHelpers.serveAssets(res, absPath);
+  } else if (req.method === 'GET' && req.url === '/styles.css') {
+    var absPath = path.join(__dirname, './public/styles.css');
+    httpHelpers.serveAssets(res, absPath);
+  } else if (req.method === 'GET' && req.url === '/loading.html') {
+    console.log('entering get request and loading.html');
+    var absPath = path.join(__dirname, './public/loading.html');
+    httpHelpers.serveAssets(res, absPath);
   } else if (req.method === 'GET') {
+    console.log('entering generic GET');
     archive.isUrlArchived(slicedUrl, function(exists) {
       if (exists) {
         var absPath = archive.paths.archivedSites + req.url;
         httpHelpers.serveAssets(res, absPath);
       } else {
         var request = http.get('http://' + slicedUrl, function(response) {
-     
         }).on('error', function(err) {
-          httpHelpers.sendResponse(res, 404);
+          httpHelpers.serveAssets(res, undefined, 404);
         });
-   
       }
     });
   } else if (req.method === 'POST') {
-    console.log('inside post!');
     httpHelpers.collectData(req, function(url) {
-      archive.addUrlToList(url);
-      httpHelpers.sendResponse(res, 302);
+      archive.isUrlArchived(url, function(exists) {
+        if (exists) {
+          var absPath = archive.paths.archivedSites + req.url;
+          httpHelpers.serveAssets(res, absPath);
+        } else {
+          archive.addUrlToList(url, function() {
+            httpHelpers.serveAssets(res, '/loading.html', 302);
+          });
+        }
+      });
     });
   }
-
-  // res.end(archive.paths.list);
 };
